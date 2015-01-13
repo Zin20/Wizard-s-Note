@@ -1,0 +1,182 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+bool MainWindow::save()
+{
+    if(currentFileName.isEmpty())
+    {
+        return saveAs();
+    }
+    else
+    {
+        return saveFile(currentFileName);
+    }
+}
+
+
+
+bool MainWindow::isSave()
+{
+    if(textEdit->document()->isModified())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("Application"),tr("The document has been modified.\nDo you want to save your changes?"),
+                                   QMessageBox::Save| QMessageBox::Discard | QMessageBox::Cancel);
+        if(ret == QMessageBox::Save)
+        {
+           return save();
+        }
+        else if(ret == QMessageBox::Cancel)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+void MainWindow::open()
+{
+    if(isSave())
+    {
+        QString fileName = QFileDialog::getOpenFileName(this);
+        if(!fileName.isEmpty())
+        {
+            loadFile(fileName);
+        }
+    }
+}
+
+void MainWindow::newFile()
+{
+   if(isSave())
+   {
+       textEdit->clear();
+       setCurrentFile("");
+   }
+}
+
+bool MainWindow::saveAs()
+{
+    QString fileName = QFileDialog::getSaveFileName(this);
+    if(fileName.isEmpty())
+    {
+        return false;
+    }
+    return saveFile(fileName);
+}
+void MainWindow::setCurrentFile(const QString &fileName)
+{
+    currentFileName = fileName;
+    textEdit->document()->setModified(false);
+    setWindowModified(false);
+
+    QString showName = currentFileName;
+    if(currentFileName.isEmpty())
+     {
+        showName = "untitled.txt";
+    }
+    setWindowFilePath(showName);
+}
+
+bool MainWindow::saveFile(const QString &fileName)
+{
+    QFile file(fileName);
+
+    if(!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QMessageBox::warning(this,tr("T Note"),tr("Cannot write file %1:\n%2.").arg(fileName).arg(file.errorString()));
+        return false;
+    }
+    QTextStream out(&file);
+
+    #ifndef QT_NO_CURSOR
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+    #endif
+        out << textEdit->toPlainText();
+    #ifndef QT_NO_CURSOR
+        QApplication::restoreOverrideCursor();
+    #endif
+
+    setCurrentFile(fileName);
+    statusBar()->showMessage(tr("File saved"),2000);
+    return true;
+}
+void MainWindow::loadFile(const QString &fileName)
+{
+    QFile file(fileName);
+    if(!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        QMessageBox::warning(this,tr("T Note"),tr("Cannot read file %1:\n%2").arg(fileName).arg(file.errorString()));
+        return;
+    }
+    QTextStream in(&file);
+    #ifndef QT_NO_CURSOR
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    #endif
+     textEdit->setPlainText(in.readAll());
+    #ifndef QT_NO_CURSOR
+        QApplication::restoreOverrideCursor();
+     #endif
+     setCurrentFile(fileName);
+     statusBar()->showMessage(tr("File loaded"),2000);
+
+}
+
+void MainWindow::createActions()
+{
+    newAct = new QAction(tr("&New"),this);
+    newAct->setShortcuts(QKeySequence::New);
+    newAct->setStatusTip(tr("Create a new File"));
+    connect(newAct,SIGNAL(triggered()),this,SLOT(newFile()));
+
+    openAct = new QAction(tr("&Open"),this);
+    openAct->setShortcuts(QKeySequence::Open);
+    openAct->setStatusTip(tr("Opens a new file"));
+    connect(openAct,SIGNAL(triggered()),this,SLOT(open()));
+
+
+    savAct = new QAction(tr("&Save"),this);
+    savAct->setShortcuts(QKeySequence::Save);
+    savAct->setStatusTip(tr("Saves the current file"));
+    connect(savAct,SIGNAL(triggered()),this,SLOT(save()));
+
+    savAsAct = new QAction(tr("&Save As"),this);
+    savAsAct->setShortcut(QKeySequence::SaveAs);
+    savAsAct->setStatusTip(tr("Save the file as"));
+    connect(savAsAct,SIGNAL(triggered()),this,SLOT(saveAs()));
+
+}
+void MainWindow::createMenus()
+{
+    fileTool = menuBar()->addMenu(tr("&File"));
+    fileTool->addAction(newAct);
+    fileTool->addAction(openAct);
+    fileTool->addAction(savAct);
+    fileTool->addAction(savAsAct);
+}
+
+MainWindow::MainWindow(QWidget *parent)
+{
+ textEdit = new QTextEdit;
+ setCentralWidget(textEdit);
+ setWindowTitle("T Note");
+ setMinimumSize(800,600);
+ connect(textEdit->document(), SIGNAL(contentsChanged()),this, SLOT(documentWasModified()));
+ setCurrentFile("");
+
+ createActions();
+ createMenus();
+
+ // setActions();
+  //fileTool = addToolBar("File");
+  //fileTool->addAction(QIcon(""),"File");
+  //fileTool->addAction(QIcon(""),"Testing");
+
+}
+
+
+
+MainWindow::~MainWindow()
+{
+
+}
+
