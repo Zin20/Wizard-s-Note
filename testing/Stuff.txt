@@ -1,0 +1,10 @@
+Open source dictiornary API Japanese to English API Edicts 
+Design of it
+	in the middle of the screen should be six text boxes left is for Japanese and three on the right is English
+	one in the middle is the one you current have select 
+	top one is the previous line used for context
+	bottom ones are for the next lines
+	Left Side Script file
+	Right of the boxes script (Parsed lines with counted number of lines)
+	Two folders orignial (Japanese) read only and two 
+Maybe add allias to files

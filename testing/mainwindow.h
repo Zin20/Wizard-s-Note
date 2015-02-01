@@ -10,7 +10,10 @@
 #include <QString>
 #include <QFileDialog>
 #include <QTextStream>
-
+#include <QListWidget>
+#include <QLayout>
+#include <QDockWidget>
+#include <QDir>
 
 namespace Ui {
 class MainWindow;
@@ -29,6 +32,8 @@ private slots:
     bool save();
     void newFile();
     bool saveAs();
+    void copy();
+   // void documentWasModified();
 
 private:
     void createActions();
@@ -37,14 +42,25 @@ private:
     bool saveFile(const QString &fileName);
     void loadFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
+    void setDocks();
+    void populateList();
     Ui::MainWindow *ui;
+    QGridLayout * layout;
     QTextEdit * textEdit;
+    QDockWidget * fileDock;
+    QListWidget * fileList;
+    QStringList * filter;
+    QDir * curDir;
     QMenu * fileTool;
+    QMenu * editTool;
     QString currentFileName;
     QAction * newAct;
     QAction * openAct;
     QAction * savAct;
     QAction * savAsAct;
+    QAction * cutAct;
+    QAction * copyAct;
+    QAction * pasteAct;
 
 
 };
